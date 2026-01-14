@@ -1,21 +1,28 @@
 package com.algaworks.dellivery.delivery.tracking.domain.model;
 
-import com.algaworks.dellivery.delivery.tracking.domain.model.exception.DomainException;
+import com.algaworks.dellivery.delivery.tracking.domain.exception.DomainException;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Setter(AccessLevel.PRIVATE)
+@Entity
 @Getter
+@Setter(AccessLevel.PRIVATE)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Delivery {
 
+    @Id
     @EqualsAndHashCode.Include
     private UUID id;
+
     private UUID courierId;
 
     private DeliveryStatus status;
@@ -31,13 +38,33 @@ public class Delivery {
 
     private Integer totalItems;
 
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "zipCode", column = @Column(name = "sender_zip_code")),
+            @AttributeOverride(name = "street", column = @Column(name = "sender_street")),
+            @AttributeOverride(name = "number", column = @Column(name = "sender_number")),
+            @AttributeOverride(name = "complement", column = @Column(name = "sender_complement")),
+            @AttributeOverride(name = "name", column = @Column(name = "sender_name")),
+            @AttributeOverride(name = "phone", column = @Column(name = "sender_phone"))
+    })
     private ContactPoint sender;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "zipCode", column = @Column(name = "recipient_zip_code")),
+            @AttributeOverride(name = "street", column = @Column(name = "recipient_street")),
+            @AttributeOverride(name = "number", column = @Column(name = "recipient_number")),
+            @AttributeOverride(name = "complement", column = @Column(name = "recipient_complement")),
+            @AttributeOverride(name = "name", column = @Column(name = "recipient_name")),
+            @AttributeOverride(name = "phone", column = @Column(name = "recipient_phone"))
+    })
     private ContactPoint recipient;
 
+    @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Item> items = new ArrayList<>();
 
     public static Delivery draft() {
-        Delivery delivery = new Delivery();
+        var delivery = new Delivery();
         delivery.setId(UUID.randomUUID());
         delivery.setStatus(DeliveryStatus.DRAFT);
         delivery.setTotalItems(0);
@@ -48,7 +75,7 @@ public class Delivery {
     }
 
     public UUID addItem(String name, Integer quantity) {
-        Item item = Item.brandNew(name, quantity);
+        Item item = Item.brandNew(name, quantity, this);
         this.items.add(item);
         calculateTotalItems();
         return item.getId();
@@ -97,7 +124,9 @@ public class Delivery {
     }
 
     public void changeItemQuantity(UUID itemId, Integer newQuantity) {
-        Item item = getItems().stream().filter(i -> i.getId().equals(itemId)).findFirst()
+        Item item = getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
                 .orElseThrow();
 
         if (newQuantity == null || newQuantity <= 0) {
@@ -143,14 +172,13 @@ public class Delivery {
     }
 
     @Getter
-    @AllArgsConstructor
     @Builder
+    @AllArgsConstructor
     public static class PreparationDetails {
         private ContactPoint sender;
         private ContactPoint recipient;
         private BigDecimal distanceFee;
         private BigDecimal courierPayout;
         private Duration expectedDeliveryTime;
-
     }
 }

@@ -2,7 +2,7 @@ package com.algaworks.dellivery.delivery.tracking.domain.model;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DeliveryStatusTest {
 
