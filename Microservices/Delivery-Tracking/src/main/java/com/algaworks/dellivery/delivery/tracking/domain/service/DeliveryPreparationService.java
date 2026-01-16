@@ -7,11 +7,13 @@ import com.algaworks.dellivery.delivery.tracking.domain.exception.DomainExceptio
 import com.algaworks.dellivery.delivery.tracking.domain.model.ContactPoint;
 import com.algaworks.dellivery.delivery.tracking.domain.model.Delivery;
 import com.algaworks.dellivery.delivery.tracking.domain.repository.DeliveryRepository;
+import com.algaworks.dellivery.delivery.tracking.infrastructure.fake.DeliveryTimeEstimationServiceFakeImplementation;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -19,6 +21,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DeliveryPreparationService {
     private final DeliveryRepository deliveryRepository;
+    private final DeliveryTimeEstimationService deliveryTimeEstimationService;
+    private final CourierPayoutCalculationService courierPayoutCalculationService;
 
     @Transactional
     public Delivery draft(DeliveryInput input) {
@@ -60,16 +64,17 @@ public class DeliveryPreparationService {
                 .street(recipientInput.getStreet())
                 .build();
 
-        Duration expectedDeliveryTime = Duration.ofDays(3);
-        BigDecimal payout = new BigDecimal("10.00");
-        BigDecimal distanceFee = new BigDecimal("10.00");
+        DeliveryEstimate deliveryEstimate = deliveryTimeEstimationService.estimate(sender, recipient);
+        BigDecimal calculatedPayout = courierPayoutCalculationService.calculatePayout(deliveryEstimate.getDistanceInKm());
+
+        BigDecimal distanceFee = calculateFee(deliveryEstimate.getDistanceInKm());
 
         var preparationDetais = Delivery.PreparationDetails.builder()
                 .sender(sender)
                 .recipient(recipient)
                 .distanceFee(distanceFee)
-                .courierPayout(payout)
-                .expectedDeliveryTime(expectedDeliveryTime)
+                .courierPayout(calculatedPayout)
+                .expectedDeliveryTime(deliveryEstimate.getEstimatedTime())
                 .build();
 
         draft.editPreparationDetails(preparationDetais);
@@ -77,5 +82,9 @@ public class DeliveryPreparationService {
         for (ItemInput itemInput : input.getItems()) {
             draft.addItem(itemInput.getName(), itemInput.getQuantity());
         }
+    }
+
+    private BigDecimal calculateFee(Double distanceInKm) {
+        return new BigDecimal("3").multiply(new BigDecimal(distanceInKm)).setScale(2, RoundingMode.HALF_EVEN);
     }
 }

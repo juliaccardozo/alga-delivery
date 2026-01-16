@@ -18,7 +18,7 @@ public class CourierRegistrationService {
     private final CourierRepository courierRepository;
 
     public Courier create(@Valid CourierInput courierInput) {
-        Courier courier = Courier.brandNew(courierInput.getName(), courierInput.getPhoneNumber());
+        Courier courier = Courier.brandNew(courierInput.getName(), courierInput.getPhone());
         return courierRepository.saveAndFlush(courier);
     }
 
@@ -26,7 +26,7 @@ public class CourierRegistrationService {
         Courier courier = courierRepository.findById(courierId)
                 .orElseThrow(() -> new IllegalArgumentException("Courier not found"));
         courier.setName(courierInput.getName());
-        courier.setPhone(courierInput.getPhoneNumber());
+        courier.setPhone(courierInput.getPhone());
         return courierRepository.saveAndFlush(courier);
     }
 }

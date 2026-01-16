@@ -12,6 +12,6 @@ public class CourierInput {
     private String name;
 
     @NotBlank
-    private String phoneNumber;
+    private String phone;
 
 }
