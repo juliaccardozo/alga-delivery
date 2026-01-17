@@ -3,7 +3,9 @@ package com.algaworks.dellivery.delivery.tracking.infrastructure.fake;
 import com.algaworks.dellivery.delivery.tracking.domain.model.ContactPoint;
 import com.algaworks.dellivery.delivery.tracking.domain.service.DeliveryEstimate;
 import com.algaworks.dellivery.delivery.tracking.domain.service.DeliveryTimeEstimationService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class DeliveryTimeEstimationServiceFakeImplementation implements DeliveryTimeEstimationService {
     @Override
     public DeliveryEstimate estimate(ContactPoint sender, ContactPoint recipient) {

@@ -35,7 +35,7 @@ public class Courier {
     private OffsetDateTime lastFulfilledDeliveryAt;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "courier")
-    private List<AssignedDelivery> pendingDeliveries;
+    private List<AssignedDelivery> pendingDeliveries = new java.util.ArrayList<>();
 
     public List<AssignedDelivery> getPendingDeliveries() {
         return Collections.unmodifiableList(this.pendingDeliveries);
