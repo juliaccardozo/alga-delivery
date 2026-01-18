@@ -17,3 +17,11 @@ spring:
       properties:
         "[spring.json.type.headers]": true,
         "[spring.json.type.mapping]": "delivery-placed-event:com.algaworks.dellivery.delivery.tracking.domain.event.DeliveryPlacedEvent,delivery-picked-up-event:com.algaworks.dellivery.delivery.tracking.domain.event.DeliveryPickedUpEvent,delivery-fulfilled-event:com.algaworks.dellivery.delivery.tracking.domain.event.DeliveryFulfilledEvent"
+
+  eureka:
+    client:
+      service-url:
+        defaultZone: http://localhost:8761/eureka/
+    instance:
+      instance-id: ${random.value}
+      prefer-ip-address: true
